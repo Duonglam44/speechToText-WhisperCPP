@@ -7,8 +7,6 @@ const formidable = require('formidable');
 app.use(cors())
 const multer = require('multer');
 
-var path = require('path')
-
 var storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, 'uploads/')
@@ -21,9 +19,8 @@ var storage = multer.diskStorage({
 var upload = multer({ storage: storage });
 
 app.post('/dictation', upload.single('file'),async (req, res) => {
-    const fileNameInput = req.file.filename;
-    const fileName = `${new Date().getTime()}.wav`;
-    const args = ['-i', `uploads/${fileNameInput}`,'-ar','16000','-ac','1','-c:a','pcm_s16le', fileName];
+    const fileName = req.file.filename.split('.')[0];
+    const args = ['-i', `uploads/${fileName}.ogg`,'-ar','16000','-ac','1','-c:a','pcm_s16le', `detected/${fileName}.wav`];
     const child = spawn('ffmpeg', args, { cwd: '.' });
     child.stdout.on('data', (data) => {
       console.log(`stdout: ${data}`);
@@ -34,7 +31,7 @@ app.post('/dictation', upload.single('file'),async (req, res) => {
     });
 
     child.on('exit', () => {
-      const convert = spawn('./main', ['-f',  `../nodeServer/${fileName}`], { cwd: '../whisper' })
+      const convert = spawn('./main', ['-f',  `../nodeServer/detected/${fileName}.wav`], { cwd: '../whisper' })
       let log = ''
       convert.stdout.on('data', (data) => {
         log += data
