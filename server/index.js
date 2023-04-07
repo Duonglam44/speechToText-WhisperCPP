@@ -1,9 +1,9 @@
 const express = require('express');
-const app = express();
 const cors = require('cors')
 const { exec, spawn } = require('child_process');
 const formidable = require('formidable');
 
+const app = express();
 app.use(cors())
 const multer = require('multer');
 
@@ -31,7 +31,7 @@ app.post('/dictation', upload.single('file'),async (req, res) => {
     });
 
     child.on('exit', () => {
-      const convert = spawn('./main', ['-f',  `../nodeServer/detected/${fileName}.wav`], { cwd: '../whisper' })
+      const convert = spawn('./main', ['-m','models/ggml-base.en.bin','-l', 'ja', '-f', `../server/detected/${fileName}.wav`], { cwd: '../whisper' })
       let log = ''
       convert.stdout.on('data', (data) => {
         log += data
